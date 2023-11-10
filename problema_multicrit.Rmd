@@ -1,0 +1,169 @@
+---
+title: "TRABAJO 2 TEORIA DE LA DECISION"
+output: html_document
+author: Marta Rodríguez Hebles
+date: 01/12/2023
+---
+## TRABAJO 2: PROBLEMA  MULTICRITERIO
+
+ALBERTO HA ACABADO SUS ESTUDIOS UNIVERSITARIOS Y DECIDE EMPEZAR UNAS PRÁCTICAS EXTRACURRICULARES. PPUEDE ELEGIR ENTRE CUATRO GRANDES EMPRESAS, PERO NO SABE POR QUÉ EMPRESA DECIDIRSE. PARA ELLO VA A TENER EN CUENTA DOS CRITERIOS, EL BENEFICIO ECONÓMICO QUE LE APORTA CADA UNA; Y, CON MAYOR PESO, EL NÚMERO DE HORAS QUE VA A TRABAJAR, PUESTO QUE CADA UNA LE PROPORCIONA CONTARTOS DIFERENTES. LAS MATRICES DE COMPARACIÓN POR PARES HAN SIDO ESTIMADAS DE LA SIGUIENTE MANERA:
+
+```{r}
+source("teoriadecision_funciones_multicriterio.R",encoding="UTF-8")
+source("teoriadecision_funciones_multicriterio_diagram.R",encoding="UTF-8")
+source("teoriadecision_funciones_multicriterio_utiles.R",encoding="UTF-8")
+```
+
+# MÉTODO AHP
+
+```{r}
+#Matriz de criterios
+n.criterios <- c("Beneficio","Horas")
+t_crit <- multicriterio.crea.matrizvaloraciones_mej(c(2),
+        numalternativas = 2,v.nombres.alternativas = n.criterios)
+t_crit
+
+#Matriz de Beneficio
+n.alternativas <- c("A","B")
+t_ben <- multicriterio.crea.matrizvaloraciones_mej(c(3),
+        numalternativas = 2,v.nombres.alternativas = n.alternativas)
+t_ben
+
+#Matriz de Horas de trabajo
+n.alternativas <- c("A","B")
+t_horas <- multicriterio.crea.matrizvaloraciones_mej(c(1/2),
+        numalternativas = 2,v.nombres.alternativas = n.alternativas)
+t_horas
+```
+
+\newpage
+# MÉTODO AHP
+
+DIAGRAMA DE LA ESTRUCTURA JERÁRQUICA
+
+```{r}
+xmatn01 <- t_crit
+xmatn02 <- array(NA,dim = c(2,2,2))
+xmatn02[,,1] <- t_ben
+xmatn02[,,2] <- t_horas
+dimnames(xmatn02)[[1]] <- n.alternativas
+dimnames(xmatn02)[[2]] <- n.alternativas
+dimnames(xmatn02)[[3]] <- n.criterios
+multicriterio.metodoahp.diagrama(xmatn01,xmatn02)
+```
+
+PESOS LOCALES
+
+```{r}
+pl_crit <- multicriterio.metodoAHP.variante1.autovectormayorautovalor(t_crit)
+pl_crit
+pl_beneficio <- multicriterio.metodoAHP.variante1.autovectormayorautovalor(t_ben)
+pl_beneficio
+pl_horas <- multicriterio.metodoAHP.variante1.autovectormayorautovalor(t_horas)
+pl_horas
+```
+
+PESOS GLOBALES
+
+```{r}
+pg <- multicriterio.metodoAHP.pesosglobales_entabla(pl_crit$valoraciones.ahp,
+        rbind(pl_beneficio$valoraciones.ahp,pl_horas$valoraciones.ahp))
+pg
+which.max(pg[,1])
+which.max(pg[,2])
+```
+Elegimos la alternativa A en cuanto al beneficio y en cuanto al número de horas es mejor la B que la A.
+Esto es porque el peso mayor en cuanto al beneficio se encuentra en la alternativa A y en cuanto al número de horas el peso mayor se encuentra en la alternativa B.
+
+CONSISTENCIA
+
+```{r}
+multicriterio.metodoAHP.coef.inconsistencia(t_crit) #cons de los criterios
+multicriterio.metodoAHP.coef.inconsistencia(t_ben) #cons de los beneficios
+multicriterio.metodoAHP.coef.inconsistencia(t_horas) #cons de las horas
+```
+
+\newpage
+La siguiente tabla muestra, para cada criterio, las evaluaciones de las cuatro alternativas, el tipo de criterio generalizado especificado por el decisor, y los correspondientes parámetros. 
+Ambos criterios son de maximizar y el decisor proporciona a cada criterio los siguientes pesos preferenciales: W = (0.3, 0.7).
+
+C1: beneficio económico
+C2: horas de trabajo
+
+ai: cada una de las empresas (i:1..4)
+
+Vamos a aplicar distintos métodos para ordenar dichas alternativas en función de ambos criterios.
+
+# MÉTODO ELECTREE
+
+```{r}
+p <- multicriterio.crea.matrizdecision(
+    c(100, 15,
+      200, 25,
+      100, 20,
+      200, 30),numalternativas = 4,numcriterios = 2)
+p
+
+W <- c(0.3, 0.7)
+alpha <- 0.7
+d <- c(Inf,Inf,Inf,Inf,Inf)
+
+sol_electree <- multicriterio.metodoELECTRE_I(p,
+                    pesos.criterios = W,
+                    nivel.concordancia.minimo.alpha = alpha,
+                    no.se.compensan = d,
+                    que.alternativas = TRUE)
+sol_electree
+qgraph::qgraph(sol_electree$relacion.dominante) #representación
+```
+
+Para comprobar cuál es la mejor alternativa nos fijamos en el núcleo, en este caso nos quedaríamos con a4.
+También se puede ver gráficamente, puesto que es la que domina a las demas.
+
+\newpage
+# MÉTODO PROMETHEE
+```{r}
+sol_promethee <- multicriterio.metodo.promethee_i(p,
+    pesos.criterios = W,
+    tab.fpref = matrix(c(1,0,0,0,
+                         1,0,0,0,
+                         1,0,0,0,
+                         1,0,0,0), ncol = 4,byrow = T))
+sol_promethee
+qgraph::qgraph(sol_promethee$tablarelacionsupera)
+
+sol_promethee2 <- multicriterio.metodo.promethee_ii(p,
+    pesos.criterios = W,
+    tab.fpref = matrix(c(1,0,0,0,
+                         1,0,0,0,
+                         1,0,0,0,
+                         1,0,0,0),ncol = 4,byrow = T))
+sol_promethee2
+qgraph::qgraph(sol_promethee2$tablarelacionsupera)
+order(sol_promethee2$vflujos.netos,decreasing = T)
+```
+
+Con esta ordenación vemos que la mejor alternativa es a4, mientras que la peor es a1.
+Al igual que antes, en el gráfico vemos que a4 es la que más domina a las otras, mientras que a1 no domina a ninguna otra alternativa, por tanto es la peor.
+
+*MÉTODO PROMETHEE MEDIAS*
+```{r}
+tab.Pthee.i_med <- multicriterio.metodo.promethee_i_med(p,W,
+                                                        tab.fpref=matrix(c(1,0,0,0,
+                                                                           1,0,0,0,
+                                                                           1,0,0,0,
+                                                                           1,0,0,0), ncol = 4,byrow = T))
+tab.Pthee.i_med
+qgraph::qgraph(tab.Pthee.i_med$tablarelacionsupera)
+
+tab.Pthee.ii_med <- multicriterio.metodo.promethee_ii_med(p,W,
+                                                          tab.fpref=matrix(c(1,0,0,0,
+                                                                               1,0,0,0,
+                                                                               1,0,0,0,
+                                                                               1,0,0,0), ncol = 4,byrow = T))
+tab.Pthee.ii_med
+qgraph::qgraph(tab.Pthee.ii_med$tablarelacionsupera)
+order(tab.Pthee.ii_med$vflujos.netos,decreasing = T)
+```
+
+En este caso obtenemos una ordenación diferente, puesto que con este método concluiríamos que la mejor alternativa es a5, y la peor si que sigue siendo a1.
