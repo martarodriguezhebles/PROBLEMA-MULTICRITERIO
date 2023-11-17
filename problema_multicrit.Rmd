@@ -14,7 +14,7 @@ source("teoriadecision_funciones_multicriterio_diagram.R",encoding="UTF-8")
 source("teoriadecision_funciones_multicriterio_utiles.R",encoding="UTF-8")
 ```
 
-# DATOS
+*DATOS*
 
 ```{r}
 #Matriz de criterios
