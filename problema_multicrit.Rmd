@@ -14,7 +14,7 @@ source("teoriadecision_funciones_multicriterio_diagram.R",encoding="UTF-8")
 source("teoriadecision_funciones_multicriterio_utiles.R",encoding="UTF-8")
 ```
 
-# MÉTODO AHP
+# DATOS
 
 ```{r}
 #Matriz de criterios
@@ -71,6 +71,23 @@ pg <- multicriterio.metodoAHP.pesosglobales_entabla(pl_crit$valoraciones.ahp,
 pg
 which.max(pg[,1])
 which.max(pg[,2])
+tabla.pesosglobales.ahp =
+multicriterio.metodoAHP.pesosglobales_entabla(
+    pl_crit$valoraciones.ahp,
+    rbind(pl_beneficio$valoraciones.ahp,
+          pl_horas$valoraciones.ahp))
+knitr::kable(tabla.pesosglobales.ahp)
+knitr::kable(tabla.pesosglobales.ahp*100,digits = 2) #en porcentajes
+
+#pesos de las ramas
+vPn1 = tabla.pesosglobales.ahp[3,1:2]
+mPn2 = tabla.pesosglobales.ahp[1:2,1:2]
+mPondRamasb = mPn2*matrix(vPn1,ncol=2,nrow=2,byrow = T)
+mPondRamas = tabla.pesosglobales.ahp
+mPondRamas[1:2,1:2] = mPondRamasb
+mPondRamas[3,3] = 1
+knitr::kable(mPondRamas)
+knitr::kable(mPondRamas*100,digits = 2) #en porcentajes
 ```
 Elegimos la alternativa A en cuanto al beneficio y en cuanto al número de horas es mejor la B que la A.
 Esto es porque el peso mayor en cuanto al beneficio se encuentra en la alternativa A y en cuanto al número de horas el peso mayor se encuentra en la alternativa B.
