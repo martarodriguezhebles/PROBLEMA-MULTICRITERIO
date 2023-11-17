@@ -89,6 +89,7 @@ mPondRamas[3,3] = 1
 knitr::kable(mPondRamas)
 knitr::kable(mPondRamas*100,digits = 2) #en porcentajes
 ```
+
 Elegimos la alternativa A en cuanto al beneficio y en cuanto al número de horas es mejor la B que la A.
 Esto es porque el peso mayor en cuanto al beneficio se encuentra en la alternativa A y en cuanto al número de horas el peso mayor se encuentra en la alternativa B.
 
@@ -137,6 +138,7 @@ qgraph::qgraph(sol_electree$relacion.dominante) #representación
 Para comprobar cuál es la mejor alternativa nos fijamos en el núcleo, en este caso nos quedaríamos con a4.
 También se puede ver gráficamente, puesto que es la que domina a las demas.
 
+
 \newpage
 # MÉTODO PROMETHEE
 ```{r}
@@ -184,3 +186,46 @@ order(tab.Pthee.ii_med$vflujos.netos,decreasing = T)
 ```
 
 En este caso obtenemos una ordenación diferente, puesto que con este método concluiríamos que la mejor alternativa es a5, y la peor si que sigue siendo a1.
+
+\newpage
+# Método Axiomático de Arrow y Raymond
+```{r}
+sejarrow <- multicriterio.metodoaxiomatico.ArrowRaymond(p)
+sejarrow
+sejarrow$alternativasordenadas
+```
+
+*Análisis paramétrico o de sensibilidad aplicación Método axiomático de Arrow y Raymond*
+```{r}
+intalpha = seq(0,0.5,0.1)
+sol = vector("list",length(intalpha)) 
+for (i in 1:length(intalpha)) {
+    p_i = p
+    p_i[1,] = p_i[1,] * intalpha[i]
+    sej_i = multicriterio.metodoaxiomatico.ArrowRaymond(p_i)
+    sol[[i]] = sej_i$alternativasordenadas} 
+sol
+
+posiciones_a4 = rep(NA,length(intalpha)) 
+for (i in 1:length(intalpha)) {
+    posiciones_a4[i] = which(sol[[i]]=="a4")}
+posiciones_a4
+plot(intalpha,posiciones_a4,type= "l") #Representación gráfica de estos cambios
+```
+
+Se puede observar que la alternativa 4 ha estado siempre en la primera posición
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
